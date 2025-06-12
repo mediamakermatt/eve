@@ -3,7 +3,8 @@ import os
 import json
 
 # Always resolve from this script's location
-CSV_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "sde_csv"))
+CSV_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "sde_csv"))
+
 print("✅ Resolved CSV_DIR:", CSV_DIR)
 
 # Load required CSV files
@@ -66,7 +67,7 @@ for _, row in inv_types.iterrows():
     all_items.append(item_data)
 
 # Save to JSON
-output_path = "PI/setup/fetch_item_data.json"
+output_path = "item_setup/fetch_item_data.json"
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, "w", encoding="utf-8") as f:
     json.dump(all_items, f, indent=2)

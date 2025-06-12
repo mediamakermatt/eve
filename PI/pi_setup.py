@@ -1,3 +1,22 @@
+# HOW TO RUN THIS FILE
+# Do not run from terminal like normal
+# Instead, run:
+    # "python -m PI.pi_setup" from the eve directory
+# This allows us to use the helpers!
+
+from helpers.get_price_data_by_region import get_price_summary_by_region
+from helpers.get_item_data import get_item_data
+
+test = get_item_data("Nanites")
+if test:
+    print(f" - Name: {test['typeName']}")
+    print(f" - Mass: {test['mass']}")
+    print(f" - Volume: {test['volume']}")
+    print(f" - Capacity: {test['capacity']}")
+    print(f" - Attributes: {test['attributes']}")
+else:
+    print("❌ Could not find item data.")
+
 command_center = {"cpu": 25415, "power": 19000}
 # all weight is measured in m3
 # delivers to the customs office orbiting the planet, auto-routing of items allowed
@@ -604,7 +623,30 @@ def estimate_planetary_setup_for_recipe(recipe_name, planet_raws, factories, com
 
     return best_setup
 
+import json
+import os
 
+# Path to your item master file
+ITEMS_JSON_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "item_setup", "fetch_item_data.json"))
+
+# Load all items once
+with open(ITEMS_JSON_PATH, "r", encoding="utf-8") as f:
+    ALL_ITEMS = json.load(f)
+
+# Build the name-to-ID mapping (case-insensitive)
+NAME_TO_TYPE_ID = {item["name"]["en"].lower(): item["type_id"] for item in ALL_ITEMS if "name" in item and "en" in item["name"]}
+
+def resolve_type_id(item):
+    if isinstance(item, (set, list)):
+        item = next(iter(item))
+    if isinstance(item, int):
+        return item
+    if not isinstance(item, str):
+        raise ValueError(f"❌ Invalid item type: {type(item)}")
+    resolved = NAME_TO_TYPE_ID.get(item.lower())
+    if resolved is None:
+        raise ValueError(f"❌ Unknown item: {item}")
+    return resolved
 
 def analyze_all_planets(planet_resources, factories, command_center):
     from collections import defaultdict
@@ -669,6 +711,14 @@ def analyze_all_planets(planet_resources, factories, command_center):
             print(" - ❌ No viable setup fits within CPU/Power constraints.")
             continue
         print(f" - ✅ Best Recipe: {result['recipe']}")
+        item_name = result["recipe"]
+        summary = get_price_summary_by_region(item_name, "The Forge", top_n=5)
+        print(f" - ✅ Jita Price: {summary['midpoint']} ISK")
+        item_data = get_item_data({result['recipe']})
+        if item_data:
+            print(f" - ✅ Volume: {item_data['volume']} m3")
+        else:
+            print("❌ Could not find item data.")
         print(f"   • Advanced Factories: {result['advanced_factories']}")
         print(f"   • Basic Factories: {result['basic_factories']}")
         print(f"   • Extractor Units: {result['extractors']}")
