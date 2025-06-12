@@ -1,0 +1,1 @@
+Run the sde_to_json.py file and it will update the fetch_item_data.json file with all game item data.
